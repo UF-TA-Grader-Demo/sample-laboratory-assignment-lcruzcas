@@ -1,0 +1,70 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Environment Setup
+      id: environment-setup
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Environment Setup
+        setup-command: pip install -r requirements.txt
+        command: pytest --disable-warnings -q tests/test_data_wrangling.py::test_environment_set_up
+        timeout: 1
+        max-score: 20
+    - name: CSV File Upload and Reading
+      id: csv-file-upload-and-reading
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: CSV File Upload and Reading
+        setup-command: pip install -r requirements.txt
+        command: pytest --disable-warnings -q tests/test_data_wrangling.py::test_csv_file_upload
+        timeout: 1
+        max-score: 20
+    - name: Fill Missing Values
+      id: fill-missing-values
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Fill Missing Values
+        setup-command: pip install -r requirements.txt
+        command: pytest --disable-warnings -q tests/test_data_wrangling.py::test_fill_missing_values
+        timeout: 2
+        max-score: 20
+    - name: Normalize Score
+      id: normalize-score
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Normalize Score
+        setup-command: pip install -r requirements.txt
+        command: pytest --disable-warnings -q tests/test_data_wrangling.py::test_normalize_score
+        timeout: 2
+        max-score: 20
+    - name: Create Visualizations
+      id: create-visualizations
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Create Visualizations
+        setup-command: pip install -r requirements.txt
+        command: pytest --disable-warnings -q tests/test_data_wrangling.py::test_create_visualizations
+        timeout: 2
+        max-score: 20
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        ENVIRONMENT-SETUP_RESULTS: "${{steps.environment-setup.outputs.result}}"
+        CSV-FILE-UPLOAD-AND-READING_RESULTS: "${{steps.csv-file-upload-and-reading.outputs.result}}"
+        FILL-MISSING-VALUES_RESULTS: "${{steps.fill-missing-values.outputs.result}}"
+        NORMALIZE-SCORE_RESULTS: "${{steps.normalize-score.outputs.result}}"
+        CREATE-VISUALIZATIONS_RESULTS: "${{steps.create-visualizations.outputs.result}}"
+      with:
+        runners: environment-setup,csv-file-upload-and-reading,fill-missing-values,normalize-score,create-visualizations
